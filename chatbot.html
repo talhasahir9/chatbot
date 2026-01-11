@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LongCat AI - Personal Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #212121;
+            color: #ececec;
+        }
+
+        .sidebar {
+            background-color: #171717;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-container {
+            background-color: #212121;
+        }
+
+        .message-user {
+            background-color: #2f2f2f;
+            border-radius: 1.5rem;
+            max-width: 80%;
+            align-self: flex-end;
+        }
+
+        .message-assistant {
+            max-width: 90%;
+            align-self: flex-start;
+        }
+
+        .input-area {
+            background: linear-gradient(180deg, rgba(33,33,33,0) 0%, rgba(33,33,33,1) 50%);
+        }
+
+        .glass-panel {
+            background: rgba(47, 47, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading-dots {
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        .copy-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .message-row:hover .copy-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-64 h-full flex-shrink-0 flex flex-col hidden md:flex border-r border-white/10">
+        <div class="p-4 flex flex-col h-full">
+            <button onclick="createNewChat()" class="flex items-center gap-3 px-3 py-2 border border-white/20 rounded-md hover:bg-white/5 transition mb-6 text-sm">
+                <i class="fa-solid fa-plus"></i>
+                New Chat
+            </button>
+            
+            <div class="flex-grow overflow-y-auto space-y-1" id="chat-history">
+                <!-- History items will be injected here -->
+            </div>
+
+            <div class="mt-auto border-t border-white/10 pt-4 space-y-2">
+                <button onclick="toggleSettings()" class="flex items-center gap-3 w-full px-3 py-2 rounded-md hover:bg-white/5 transition text-sm">
+                    <i class="fa-solid fa-gear"></i>
+                    Settings (API Key)
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col h-full relative">
+        <!-- Header -->
+        <header class="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden bg-[#212121]">
+            <button onclick="toggleSidebar()" class="text-white">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <h1 class="text-sm font-semibold">LongCat Flash</h1>
+            <button onclick="toggleSettings()" class="text-white">
+                <i class="fa-solid fa-gear text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Model Indicator (Desktop) -->
+        <div class="hidden md:flex justify-center pt-4">
+             <div class="px-3 py-1 rounded-lg bg-white/5 text-xs font-medium border border-white/10 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                LongCat-Flash-Chat
+             </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-display" class="flex-grow overflow-y-auto px-4 py-8 space-y-6 flex flex-col">
+            <!-- Initial Welcome Message -->
+            <div id="welcome-message" class="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+                <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-cat text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">How can I help you today?</h2>
+                <p class="max-w-md text-sm">Input your LongCat API key in settings to start managing your daily tasks.</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area pb-8 px-4 md:px-0">
+            <div class="max-w-3xl mx-auto relative">
+                <div class="glass-panel rounded-2xl p-2 flex items-end gap-2 focus-within:border-white/30 transition shadow-2xl">
+                    <textarea 
+                        id="user-input" 
+                        rows="1" 
+                        placeholder="Message LongCat..." 
+                        class="flex-grow bg-transparent border-none focus:ring-0 p-3 resize-none max-h-60 text-base overflow-y-auto"
+                        oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                    ></textarea>
+                    <button 
+                        id="send-btn"
+                        onclick="sendMessage()" 
+                        class="bg-white text-black w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-200 transition disabled:opacity-30"
+                    >
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </div>
+                <p id="validation-msg" class="text-[10px] text-center mt-2 text-red-400 hidden">
+                    Please enter a message or check your API key settings.
+                </p>
+                <p class="text-[10px] text-center mt-2 text-white/30">
+                    LongCat can make mistakes. Check important info.
+                </p>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden p-4">
+            <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">API Settings</h3>
+                    <button onclick="toggleSettings()" class="text-white/50 hover:text-white">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-white/50 mb-1">LONGCAT API KEY</label>
+                        <input 
+                            id="api-key-input" 
+                            type="password" 
+                            placeholder="Paste your API key here" 
+                            class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:border-white/30 outline-none"
+                        >
+                        <p class="text-[10px] text-white/30 mt-1">Get your key from <a href="https://longcat.chat/platform" target="_blank" class="underline">longcat.chat/platform</a></p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-white/50 mb-1">BASE URL</label>
+                        <input 
+                            id="base-url-input" 
+                            type="text" 
+                            value="https://api.longcat.chat/openai/v1" 
+                            class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:border-white/30 outline-none"
+                        >
+                    </div>
+
+                    <button 
+                        onclick="saveSettings()" 
+                        class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition"
+                    >
+                        Save & Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Hidden textarea for copying -->
+    <textarea id="copy-helper" class="fixed -top-full opacity-0 pointer-events-none"></textarea>
+
+    <script>
+        let chatHistory = [];
+        let isTyping = false;
+
+        window.onload = () => {
+            const savedKey = localStorage.getItem('longcat_api_key');
+            const savedUrl = localStorage.getItem('longcat_base_url');
+            if (savedKey) document.getElementById('api-key-input').value = savedKey;
+            if (savedUrl) document.getElementById('base-url-input').value = savedUrl;
+            updateHistoryUI();
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('fixed');
+            sidebar.classList.toggle('inset-0');
+            sidebar.classList.toggle('z-40');
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function saveSettings() {
+            const key = document.getElementById('api-key-input').value;
+            const url = document.getElementById('base-url-input').value;
+            localStorage.setItem('longcat_api_key', key);
+            localStorage.setItem('longcat_base_url', url);
+            toggleSettings();
+            showStatusMessage("Settings saved!");
+            document.getElementById('validation-msg').classList.add('hidden');
+        }
+
+        function createNewChat() {
+            chatHistory = [];
+            document.getElementById('chat-display').innerHTML = `
+                <div id="welcome-message" class="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+                    <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-cat text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold">New Session</h2>
+                    <p class="max-w-md text-sm">Ready to help with your tasks.</p>
+                </div>
+            `;
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById('user-input');
+            const validationMsg = document.getElementById('validation-msg');
+            const text = inputField.value.trim();
+            const apiKey = localStorage.getItem('longcat_api_key');
+            const baseUrl = localStorage.getItem('longcat_base_url') || "https://api.longcat.chat/openai/v1";
+
+            // --- MESSAGE CHECK ---
+            if (!text) {
+                validationMsg.innerText = "Please enter a message.";
+                validationMsg.classList.remove('hidden');
+                return;
+            }
+            if (!apiKey) {
+                validationMsg.innerText = "API Key missing. Please set it in Settings.";
+                validationMsg.classList.remove('hidden');
+                toggleSettings();
+                return;
+            }
+            
+            validationMsg.classList.add('hidden');
+            if (isTyping) return;
+
+            // UI Updates
+            removeWelcome();
+            appendMessage('user', text);
+            inputField.value = '';
+            inputField.style.height = 'auto';
+            isTyping = true;
+            document.getElementById('send-btn').disabled = true;
+
+            const assistantMessageId = appendMessage('assistant', '<span class="loading-dots">Thinking...</span>');
+            
+            try {
+                const response = await fetch(`${baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "LongCat-Flash-Chat",
+                        messages: chatHistory.map(m => ({ role: m.role, content: m.content })),
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+                const data = await response.json();
+                const aiText = data.choices[0].message.content;
+                
+                updateMessage(assistantMessageId, aiText);
+                chatHistory.push({ role: 'assistant', content: aiText });
+                
+            } catch (error) {
+                console.error(error);
+                updateMessage(assistantMessageId, `<span class="text-red-400">Error: ${error.message}. Please check your API key and network.</span>`);
+            } finally {
+                isTyping = false;
+                document.getElementById('send-btn').disabled = false;
+            }
+        }
+
+        function removeWelcome() {
+            const welcome = document.getElementById('welcome-message');
+            if (welcome) welcome.remove();
+        }
+
+        function appendMessage(role, content) {
+            const display = document.getElementById('chat-display');
+            const id = 'msg-' + Date.now();
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `message-row flex flex-col ${role === 'user' ? 'items-end' : 'items-start'}`;
+            
+            const icon = role === 'user' ? 'fa-user' : 'fa-cat';
+            const bgColor = role === 'user' ? 'bg-[#2f2f2f]' : 'bg-transparent';
+            
+            rowDiv.innerHTML = `
+                <div class="flex gap-4 p-4 rounded-2xl max-w-[90%] md:max-w-[80%] ${bgColor} group relative">
+                    ${role === 'assistant' ? `<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0"><i class="fa-solid ${icon} text-sm"></i></div>` : ''}
+                    <div class="flex flex-col gap-2 w-full">
+                        <div id="${id}" class="prose prose-invert text-sm leading-relaxed whitespace-pre-wrap">${content}</div>
+                        ${role === 'assistant' ? `
+                            <div class="flex items-center gap-2 mt-2">
+                                <button onclick="copyToClipboard('${id}')" class="copy-btn text-white/30 hover:text-white text-[10px] flex items-center gap-1 bg-white/5 px-2 py-1 rounded transition">
+                                    <i class="fa-regular fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            display.appendChild(rowDiv);
+            display.scrollTop = display.scrollHeight;
+
+            if (role === 'user') chatHistory.push({ role, content });
+            return id;
+        }
+
+        function updateMessage(id, content) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = content;
+            const display = document.getElementById('chat-display');
+            display.scrollTop = display.scrollHeight;
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            const helper = document.getElementById('copy-helper');
+            helper.value = text;
+            helper.select();
+            document.execCommand('copy');
+            showStatusMessage("Copied to clipboard!");
+        }
+
+        function updateHistoryUI() {
+            const container = document.getElementById('chat-history');
+            container.innerHTML = '<p class="text-[10px] text-white/20 p-2 text-center">Chat history ready</p>';
+        }
+
+        function showStatusMessage(text) {
+            const existing = document.getElementById('status-toast');
+            if (existing) existing.remove();
+
+            const msg = document.createElement('div');
+            msg.id = 'status-toast';
+            msg.className = "fixed bottom-24 left-1/2 -translate-x-1/2 bg-white text-black px-4 py-2 rounded-full text-xs font-bold shadow-xl z-50 transition-all transform animate-bounce";
+            msg.innerText = text;
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.classList.add('opacity-0');
+                setTimeout(() => msg.remove(), 300);
+            }, 2000);
+        }
+
+        document.getElementById('user-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
+
