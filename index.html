@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LongCat Assistant</title>
+    <title>LongCat Assistant - Long Form Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,8 +19,8 @@
         .overlay.active { display: block; }
         .message-user { background-color: var(--bg-input); border-radius: 1.25rem; padding: 0.75rem 1rem; max-width: 85%; align-self: flex-end; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .assistant-row { align-self: flex-start; width: 100%; }
-        .copy-btn { opacity: 0; transition: opacity 0.2s; }
-        .assistant-row:hover .copy-btn { opacity: 1; }
+        .copy-btn, .continue-btn { opacity: 0; transition: opacity 0.2s; }
+        .assistant-row:hover .copy-btn, .assistant-row:hover .continue-btn { opacity: 1; }
         .glass-panel { background: rgba(35, 35, 35, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #3c3c3c; border-radius: 10px; }
@@ -38,13 +38,13 @@
                 <i class="fa-solid fa-cat text-3xl text-white"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">LongCat Assistant</h1>
-                <p class="text-sm text-white/40 mt-2 leading-relaxed px-4">Enter your API Key to unlock your workspace. History syncs automatically.</p>
+                <h1 class="text-2xl font-bold tracking-tight">LongCat Pro Assistant</h1>
+                <p class="text-sm text-white/40 mt-2 leading-relaxed px-4">Workspace optimized for long scripts and task management. History syncs automatically.</p>
             </div>
             <div class="space-y-4">
-                <input id="api-key-entry" type="password" placeholder="Paste API Key (sk-...)" class="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-sm outline-none text-center focus:border-blue-500 transition-all">
+                <input id="api-key-entry" type="password" placeholder="Paste LongCat API Key (sk-...)" class="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-sm outline-none text-center focus:border-blue-500 transition-all">
                 <button id="login-btn" onclick="startApp()" class="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-gray-100 transition active:scale-[0.98] flex items-center justify-center gap-2">
-                    <i id="login-icon" class="fa-solid fa-bolt"></i> <span id="login-text">Sync & Enter</span>
+                    <i id="login-icon" class="fa-solid fa-bolt"></i> <span id="login-text">Launch Workspace</span>
                 </button>
             </div>
             <p id="login-error" class="text-xs text-red-400 hidden bg-red-400/10 p-3 rounded-xl"></p>
@@ -64,14 +64,14 @@
     <aside id="sidebar" class="sidebar w-72 h-full flex flex-col border-r border-white/5 shrink-0">
         <div class="p-4 flex flex-col h-full">
             <button onclick="createNewChat()" class="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm font-medium mb-6">
-                <i class="fa-solid fa-plus"></i> New Chat
+                <i class="fa-solid fa-plus"></i> New Project
             </button>
             <div id="chat-list" class="flex-grow overflow-y-auto space-y-1 pr-1">
-                <p class="px-2 pb-2 text-[10px] font-bold uppercase text-white/20 tracking-widest">History</p>
+                <p class="px-2 pb-2 text-[10px] font-bold uppercase text-white/20 tracking-widest">Saved Projects</p>
                 <p class="text-[10px] opacity-20 p-2 italic" id="history-status">Local storage mode</p>
             </div>
             <div class="pt-4 border-t border-white/5">
-                <div id="sync-indicator" class="text-[9px] text-green-500/50 px-2 mb-2 uppercase font-bold">● Local Storage Active</div>
+                <div id="sync-indicator" class="text-[9px] text-green-500/50 px-2 mb-2 uppercase font-bold">● Local Session</div>
                 <button onclick="logout()" class="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-red-500/10 text-red-400/60 hover:text-red-400 transition text-sm">
                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                 </button>
@@ -83,14 +83,15 @@
     <main class="flex-grow flex flex-col h-full overflow-hidden relative">
         <div id="feed" class="flex-grow overflow-y-auto p-4 md:p-8 space-y-8 flex flex-col w-full max-w-3xl mx-auto pb-32">
             <div id="welcome-msg" class="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-20 py-20">
-                <i class="fa-solid fa-cat text-6xl"></i>
-                <h2 class="text-xl font-bold">Personal Workspace</h2>
+                <i class="fa-solid fa-feather-pointed text-6xl"></i>
+                <h2 class="text-xl font-bold">Ready for Long Scripts</h2>
+                <p class="text-sm">Requests are handled in parts to ensure maximum length.</p>
             </div>
         </div>
         <div class="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent shrink-0">
             <div class="max-w-3xl mx-auto relative">
                 <div class="glass-panel rounded-2xl p-2 flex items-end gap-2 focus-within:ring-1 focus-within:ring-white/20">
-                    <textarea id="user-input" rows="1" placeholder="Type a message..." class="flex-grow bg-transparent border-none focus:ring-0 p-3 resize-none max-h-40 text-base outline-none" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <textarea id="user-input" rows="1" placeholder="Describe your 8,000 word script..." class="flex-grow bg-transparent border-none focus:ring-0 p-3 resize-none max-h-40 text-base outline-none" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
                     <button id="action-btn" onclick="handleAction()" class="bg-white text-black w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0">
                         <i id="action-icon" class="fa-solid fa-arrow-up"></i>
                     </button>
@@ -100,7 +101,6 @@
     </main>
 
     <script type="module">
-        // Modular imports with fallbacks
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -110,64 +110,47 @@
         let isProcessing = false; let abortController = null;
         let isCloudMode = false;
 
-        // Initialize Firebase ONLY if config is available
         try {
             if (typeof __firebase_config !== 'undefined') {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
+                const config = JSON.parse(__firebase_config);
+                const app = initializeApp(config);
                 auth = getAuth(app);
                 db = getFirestore(app);
                 isCloudMode = true;
                 document.getElementById('sync-indicator').innerText = "● Cloud Sync Active";
                 document.getElementById('sync-indicator').className = "text-[9px] text-blue-400 px-2 mb-2 uppercase font-bold";
             }
-        } catch (e) { console.warn("Firebase config missing - Switching to Local Mode"); }
+        } catch (e) { console.warn("Cloud features limited."); }
 
-        // Start App Logic
         window.startApp = async () => {
             const key = document.getElementById('api-key-entry').value.trim();
-            const btn = document.getElementById('login-btn');
-            const errorEl = document.getElementById('login-error');
-
-            if (!key) { errorEl.innerText = "Please paste your key."; errorEl.classList.remove('hidden'); return; }
-            
-            errorEl.classList.add('hidden');
-            btn.disabled = true;
-            document.getElementById('login-text').innerText = "Verifying...";
-
+            if (!key) return;
             localStorage.setItem('lc_key', key);
-            
-            // Simple hash for ID
             identityId = btoa(key).substring(0, 16).replace(/[/+=]/g, '');
-            
             document.getElementById('login-screen').classList.add('hidden');
             loadHistory();
         };
 
-        // Load history from cloud OR local
         function loadHistory() {
             if (isCloudMode && auth) {
                 signInAnonymously(auth).then(() => {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'longcat-external';
-                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'sessions_' + identityId);
-                    onSnapshot(ref, (snap) => {
-                        const docs = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                        renderSidebar(docs.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'longcat-pro';
+                    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'sessions_' + identityId), (snap) => {
+                        renderSidebar(snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
                     });
                 });
             } else {
-                const localData = JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]');
-                renderSidebar(localData);
+                renderSidebar(JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]'));
             }
         }
 
         function renderSidebar(sessions) {
             const list = document.getElementById('chat-list');
-            list.innerHTML = `<p class="px-2 pb-2 text-[10px] font-bold uppercase text-white/20 tracking-widest">History</p>`;
+            list.innerHTML = `<p class="px-2 pb-2 text-[10px] font-bold uppercase text-white/20 tracking-widest">Projects</p>`;
             sessions.forEach(s => {
                 const btn = document.createElement('div');
-                btn.className = `flex items-center gap-3 w-full p-2.5 rounded-xl text-left text-xs transition group cursor-pointer mb-1 ${currentSessionId === s.id ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`;
-                btn.innerHTML = `<i class="fa-regular fa-message opacity-30"></i><span class="truncate flex-grow">${s.title || 'Chat'}</span>`;
+                btn.className = `flex items-center gap-3 w-full p-2.5 rounded-xl text-left text-xs mb-1 cursor-pointer ${currentSessionId === s.id ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`;
+                btn.innerHTML = `<i class="fa-regular fa-file-lines opacity-30"></i><span class="truncate flex-grow">${s.title}</span>`;
                 btn.onclick = () => selectSession(s);
                 list.appendChild(btn);
             });
@@ -177,97 +160,71 @@
             currentSessionId = session.id;
             document.getElementById('feed').innerHTML = '';
             document.getElementById('welcome-msg')?.remove();
-            
-            if (isCloudMode) {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'longcat-external';
-                const ref = collection(db, 'artifacts', appId, 'public', 'data', 'msgs_' + identityId + '_' + session.id);
-                onSnapshot(ref, (snap) => {
-                    const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-                    document.getElementById('feed').innerHTML = '';
-                    chatHistory = [];
-                    msgs.forEach(m => {
-                        appendUI(m.role, m.content);
-                        chatHistory.push(m);
-                    });
-                });
-            } else {
-                chatHistory = session.messages || [];
-                chatHistory.forEach(m => appendUI(m.role, m.content));
-            }
+            chatHistory = session.messages || [];
+            chatHistory.forEach(m => appendUI(m.role, m.content));
             if(window.innerWidth < 768) toggleSidebar();
         }
 
         window.handleAction = () => { if (isProcessing) stop(); else send(); };
 
-        async function send() {
+        async function send(customPrompt = null) {
             const input = document.getElementById('user-input');
-            const text = input.value.trim();
+            const text = customPrompt || input.value.trim();
             const key = localStorage.getItem('lc_key');
             if (!text || isProcessing) return;
 
-            document.getElementById('welcome-msg')?.remove();
-
-            // Create new session if none
             if (!currentSessionId) {
                 currentSessionId = Date.now().toString();
-                const newSession = { id: currentSessionId, title: text.substring(0,30), createdAt: {seconds: Date.now()/1000}, messages: [] };
-                if (isCloudMode) {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'longcat-external';
-                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'sessions_' + identityId);
-                    await addDoc(ref, newSession);
-                } else {
-                    const history = JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]');
-                    history.unshift(newSession);
-                    localStorage.setItem('lc_history_' + identityId, JSON.stringify(history));
-                    renderSidebar(history);
+                const session = { id: currentSessionId, title: text.substring(0,30), messages: [] };
+                if (!isCloudMode) {
+                    const h = JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]');
+                    h.unshift(session);
+                    localStorage.setItem('lc_history_' + identityId, JSON.stringify(h));
+                    renderSidebar(h);
                 }
             }
 
-            const userMsg = { role: 'user', content: text, timestamp: {seconds: Date.now()/1000} };
-            appendUI('user', text);
-            chatHistory.push(userMsg);
+            if (!customPrompt) {
+                appendUI('user', text);
+                chatHistory.push({ role: 'user', content: text });
+                input.value = '';
+            }
             
-            input.value = '';
-            input.style.height = 'auto';
             isProcessing = true;
             updateBtn(true);
             abortController = new AbortController();
+
+            const thinkingId = appendUI('assistant', '<span class="thinking-dot italic text-blue-400">Writing the script... (this may take a moment)</span>');
 
             try {
                 const res = await fetch("https://api.longcat.chat/openai/v1/chat/completions", {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
                     signal: abortController.signal,
-                    body: JSON.stringify({ model: "LongCat-Flash-Chat", messages: chatHistory.map(m => ({role: m.role, content: m.content})) })
+                    body: JSON.stringify({ 
+                        model: "LongCat-Flash-Chat", 
+                        messages: chatHistory.map(m => ({role: m.role, content: m.content})) 
+                    })
                 });
                 const data = await res.json();
                 const aiText = data.choices[0].message.content;
-                const aiMsg = { role: 'assistant', content: aiText, timestamp: {seconds: Date.now()/1000} };
-                
-                appendUI('assistant', aiText);
-                chatHistory.push(aiMsg);
+                updateAI(thinkingId, aiText);
+                chatHistory.push({ role: 'assistant', content: aiText });
 
-                // Save to Cloud or Local
-                if (isCloudMode) {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'longcat-external';
-                    const msgRef = collection(db, 'artifacts', appId, 'public', 'data', 'msgs_' + identityId + '_' + currentSessionId);
-                    await addDoc(msgRef, userMsg);
-                    await addDoc(msgRef, aiMsg);
-                } else {
-                    const history = JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]');
-                    const idx = history.findIndex(h => h.id === currentSessionId);
-                    if(idx !== -1) {
-                        history[idx].messages = chatHistory;
-                        localStorage.setItem('lc_history_' + identityId, JSON.stringify(history));
-                    }
+                // Add to local history storage
+                if (!isCloudMode) {
+                    const h = JSON.parse(localStorage.getItem('lc_history_' + identityId) || '[]');
+                    const idx = h.findIndex(x => x.id === currentSessionId);
+                    if(idx !== -1) { h[idx].messages = chatHistory; localStorage.setItem('lc_history_' + identityId, JSON.stringify(h)); }
                 }
-            } catch (e) { if(e.name !== 'AbortError') appendUI('assistant', 'Error: check connection.'); }
+            } catch (e) { if(e.name !== 'AbortError') updateAI(thinkingId, 'Error connecting to API.'); }
             finally { isProcessing = false; updateBtn(false); }
         }
 
         function stop() { if(abortController) { abortController.abort(); isProcessing = false; updateBtn(false); } }
 
         function appendUI(role, content) {
+            const id = 'msg-' + Date.now();
             const feed = document.getElementById('feed');
             const div = document.createElement('div');
             div.className = role === 'user' ? 'message-user' : 'assistant-row flex gap-4 p-2';
@@ -276,41 +233,37 @@
             } else {
                 div.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-lg"><i class="fa-solid fa-cat text-[12px] text-white"></i></div>
-                    <div class="flex flex-col gap-2">
-                        <div class="text-sm leading-relaxed whitespace-pre-wrap">${content}</div>
-                        <button onclick="copyText(this)" class="copy-btn text-[10px] text-white/20 hover:text-white self-start"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <div class="flex flex-col gap-3 w-full overflow-hidden">
+                        <div id="${id}" class="text-sm leading-relaxed whitespace-pre-wrap">${content}</div>
+                        <div class="flex gap-2">
+                            <button onclick="copyText(this)" class="copy-btn text-[10px] bg-white/5 px-2 py-1 rounded text-white/40 hover:text-white transition">Copy</button>
+                            <button onclick="continueWriting()" class="continue-btn text-[10px] bg-blue-600/20 px-2 py-1 rounded text-blue-400 hover:bg-blue-600 hover:text-white transition">Continue Writing...</button>
+                        </div>
                     </div>`;
             }
             feed.appendChild(div);
             feed.scrollTop = feed.scrollHeight;
+            return id;
         }
+
+        window.continueWriting = () => {
+            send("The script was cut off. Please continue exactly from where you left off. Don't repeat what you already wrote, just keep going until the 8,000 word goal is reached.");
+        };
+
+        function updateAI(id, text) { const el = document.getElementById(id); if(el) el.innerHTML = text; }
 
         function updateBtn(p) {
-            const icon = document.getElementById('action-icon');
-            const btn = document.getElementById('action-btn');
-            icon.className = p ? "fa-solid fa-square text-xs animate-pulse" : "fa-solid fa-arrow-up";
-            btn.className = p ? "bg-white/10 text-white w-10 h-10 rounded-xl flex items-center justify-center shrink-0" : "bg-white text-black w-10 h-10 rounded-xl flex items-center justify-center shrink-0";
+            const i = document.getElementById('action-icon');
+            i.className = p ? "fa-solid fa-square text-xs" : "fa-solid fa-arrow-up";
+            document.getElementById('action-btn').className = p ? "bg-white/10 text-white w-10 h-10 rounded-xl flex items-center justify-center shrink-0" : "bg-white text-black w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg";
         }
 
-        window.toggleSidebar = () => {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
-        };
-
-        window.copyText = (btn) => {
-            const text = btn.parentElement.querySelector('div').innerText;
-            navigator.clipboard.writeText(text);
-            btn.innerText = "Copied!";
-            setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy', 2000);
-        };
-
+        window.toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); };
+        window.copyText = (btn) => { navigator.clipboard.writeText(btn.parentElement.previousElementSibling.innerText); btn.innerText = "Copied!"; setTimeout(()=>btn.innerText="Copy", 2000); };
         window.logout = () => { localStorage.removeItem('lc_key'); location.reload(); };
+        window.createNewChat = () => { currentSessionId = null; chatHistory = []; document.getElementById('feed').innerHTML = '<div class="opacity-20 py-20 text-center font-bold italic">New Long Script Project</div>'; if(window.innerWidth < 768) toggleSidebar(); };
 
-        window.createNewChat = () => { currentSessionId = null; chatHistory = []; document.getElementById('feed').innerHTML = '<div class="opacity-20 py-20 text-center"><i class="fa-solid fa-cat text-4xl mb-4"></i><p>New Chat Started</p></div>'; if(window.innerWidth < 768) toggleSidebar(); };
-
-        // Auto-login if key exists
         if(localStorage.getItem('lc_key')) startApp();
-
     </script>
 </body>
 </html>
